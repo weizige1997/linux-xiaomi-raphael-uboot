@@ -42,7 +42,10 @@ chroot rootdir apt update
 chroot rootdir apt upgrade -y
 
 # 安装基础软件包
-chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano systemd-boot initramfs-tools chrony curl wget u-boot-tools $1
+chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano systemd-boot initramfs-tools chrony curl wget u-boot-tools
+
+# 安装桌面环境
+chroot rootdir apt install -y phosh phosh-mobile-tweaks phosh-plugins phoc squeekboard feedbackd iio-sensor-proxy network-manager-gnome gdm3 gdm3-themes
 
 # 安装设备特定软件包
 chroot rootdir apt install -y rmtfs protection-domain-mapper tqftpserv
