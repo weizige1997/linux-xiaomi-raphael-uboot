@@ -52,14 +52,16 @@ chroot rootdir apt upgrade -y
 # 安装基础软件包
 chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano tmux network-manager alsa-ucm-conf systemd-boot initramfs-tools chrony curl wget u-boot-tools
 
-# 安装中文语言包和时区配置
-chroot rootdir apt install -y locales tzdata
-echo "zh_CN.UTF-8 UTF-8" | tee -a rootdir/etc/locale.gen
-chroot rootdir locale-gen zh_CN.UTF-8
-echo "LANG=zh_CN.UTF-8" | tee rootdir/etc/locale.conf
-echo "LC_ALL=zh_CN.UTF-8" | tee -a rootdir/etc/locale.conf
-ln -sf /usr/share/zoneinfo/Asia/Shanghai rootdir/etc/localtime
+# 安装语言包和设置默认语言为简体中文
+chroot rootdir apt install -y locales locales-all tzdata
+echo "LANG=zh_CN.UTF-8" | tee rootdir/etc/default/locale
+echo "LANGUAGE=zh_CN:zh" | tee -a rootdir/etc/default/locale
+echo "LC_ALL=zh_CN.UTF-8" | tee -a rootdir/etc/default/locale
+
+# 设置时区为亚洲/上海
 echo "Asia/Shanghai" | tee rootdir/etc/timezone
+chroot rootdir ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+chroot rootdir dpkg-reconfigure --frontend noninteractive tzdata
 
 # 安装设备特定软件包
 chroot rootdir apt install -y rmtfs protection-domain-mapper tqftpserv

@@ -52,17 +52,8 @@ chroot rootdir apt upgrade -y
 # 安装基础软件包
 chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano systemd-boot initramfs-tools chrony curl wget u-boot-tools $1
 
-# 安装简体中文语言包和配置
-chroot rootdir apt install -y locales language-pack-zh-hans language-pack-zh-hans-base language-pack-gnome-zh-hans language-pack-gnome-zh-hans-base
-chroot rootdir apt install -y fonts-noto-cjk fonts-noto-cjk-extra fonts-wqy-microhei fonts-wqy-zenhei
-
-# 生成中文locale
-echo "zh_CN.UTF-8 UTF-8" | tee -a rootdir/etc/locale.gen
-echo "zh_CN.GBK GBK" | tee -a rootdir/etc/locale.gen
-echo "zh_CN.GB2312 GB2312" | tee -a rootdir/etc/locale.gen
-chroot rootdir locale-gen
-
-# 设置默认语言为简体中文
+# 安装语言包和设置默认语言为简体中文
+chroot rootdir apt install -y locales locales-all tzdata
 echo "LANG=zh_CN.UTF-8" | tee rootdir/etc/default/locale
 echo "LANGUAGE=zh_CN:zh" | tee -a rootdir/etc/default/locale
 echo "LC_ALL=zh_CN.UTF-8" | tee -a rootdir/etc/default/locale
