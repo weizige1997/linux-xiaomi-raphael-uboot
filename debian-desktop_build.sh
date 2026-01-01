@@ -19,7 +19,7 @@ mkdir rootdir
 mount -o loop rootfs.img rootdir
 
 # debootstrap生成镜像
-debootstrap --arch=$ARCH $DEBIAN_VERSION rootdir http://deb.debian.org/debian/
+debootstrap --arch=$ARCH $DEBIAN_VERSION rootdir https://mirrors.tuna.tsinghua.edu.cn/debian/
 
 # 绑定系统目录
 mount --bind /dev rootdir/dev
@@ -37,6 +37,14 @@ echo "127.0.0.1 localhost
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:\$PATH
 export DEBIAN_FRONTEND=noninteractive
 
+# 配置清华镜像源
+cat > rootdir/etc/apt/sources.list << 'EOF'
+deb https://mirrors.tuna.tsinghua.edu.cn/debian/ trixie main contrib non-free non-free-firmware
+deb https://mirrors.tuna.tsinghua.edu.cn/debian/ trixie-updates main contrib non-free non-free-firmware
+deb https://mirrors.tuna.tsinghua.edu.cn/debian/ trixie-backports main contrib non-free non-free-firmware
+deb https://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware
+EOF
+
 # 更新系统
 chroot rootdir apt update
 chroot rootdir apt upgrade -y
@@ -45,24 +53,24 @@ chroot rootdir apt upgrade -y
 chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano systemd-boot initramfs-tools chrony curl wget u-boot-tools $1
 
 # 安装简体中文语言包和配置
-chroot rootdir apt install -y locales language-pack-zh-hans language-pack-zh-hans-base language-pack-gnome-zh-hans language-pack-gnome-zh-hans-base
-chroot rootdir apt install -y fonts-noto-cjk fonts-noto-cjk-extra fonts-wqy-microhei fonts-wqy-zenhei
+#chroot rootdir apt install -y locales language-pack-zh-hans language-pack-zh-hans-base language-pack-gnome-zh-hans language-pack-gnome-zh-hans-base
+#chroot rootdir apt install -y fonts-noto-cjk fonts-noto-cjk-extra fonts-wqy-microhei fonts-wqy-zenhei
 
 # 生成中文locale
-echo "zh_CN.UTF-8 UTF-8" | tee -a rootdir/etc/locale.gen
-echo "zh_CN.GBK GBK" | tee -a rootdir/etc/locale.gen
-echo "zh_CN.GB2312 GB2312" | tee -a rootdir/etc/locale.gen
-chroot rootdir locale-gen
+#echo "zh_CN.UTF-8 UTF-8" | tee -a rootdir/etc/locale.gen
+#echo "zh_CN.GBK GBK" | tee -a rootdir/etc/locale.gen
+#echo "zh_CN.GB2312 GB2312" | tee -a rootdir/etc/locale.gen
+#chroot rootdir locale-gen
 
 # 设置默认语言为简体中文
-echo "LANG=zh_CN.UTF-8" | tee rootdir/etc/default/locale
-echo "LANGUAGE=zh_CN:zh" | tee -a rootdir/etc/default/locale
-echo "LC_ALL=zh_CN.UTF-8" | tee -a rootdir/etc/default/locale
+#echo "LANG=zh_CN.UTF-8" | tee rootdir/etc/default/locale
+#echo "LANGUAGE=zh_CN:zh" | tee -a rootdir/etc/default/locale
+#echo "LC_ALL=zh_CN.UTF-8" | tee -a rootdir/etc/default/locale
 
 # 设置时区为亚洲/上海
-echo "Asia/Shanghai" | tee rootdir/etc/timezone
-chroot rootdir ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-chroot rootdir dpkg-reconfigure --frontend noninteractive tzdata
+#echo "Asia/Shanghai" | tee rootdir/etc/timezone
+#chroot rootdir ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+#chroot rootdir dpkg-reconfigure --frontend noninteractive tzdata
 
 # 安装设备特定软件包
 chroot rootdir apt install -y rmtfs protection-domain-mapper tqftpserv
@@ -88,9 +96,9 @@ chroot rootdir useradd -m -G sudo -s /bin/bash user
 echo "user:1234" | chroot rootdir chpasswd
 
 # 设置用户中文环境
-echo "export LANG=zh_CN.UTF-8" | tee -a rootdir/home/user/.bashrc
-echo "export LANGUAGE=zh_CN:zh" | tee -a rootdir/home/user/.bashrc
-echo "export LC_ALL=zh_CN.UTF-8" | tee -a rootdir/home/user/.bashrc
+#echo "export LANG=zh_CN.UTF-8" | tee -a rootdir/home/user/.bashrc
+#echo "export LANGUAGE=zh_CN:zh" | tee -a rootdir/home/user/.bashrc
+#echo "export LC_ALL=zh_CN.UTF-8" | tee -a rootdir/home/user/.bashrc
 
 # 允许SSH root登录
 echo "PermitRootLogin yes" | tee -a rootdir/etc/ssh/sshd_config

@@ -38,7 +38,13 @@ jobs:
       # 检出代码
       - name: 检出代码
         uses: actions/checkout@v4
-      
+    
+      # 安装debootstrap
+      - name: 安装debootstrap
+        run: |
+          sudo apt update
+          sudo apt install -y debootstrap
+    
       # 从 GitHub Release 下载内核包
       - name: 下载内核编译产物
         run: |
