@@ -73,6 +73,7 @@ jobs:
           name: "Ubuntu Desktop 镜像 v${{ inputs.kernel_version }} (${{ inputs.desktop_environment }})"
           body: |
             小米 Raphael 设备 Ubuntu Desktop 镜像
+            - Ubuntu 版本: noble
             - 内核版本: ${{ inputs.kernel_version }}
             - 桌面环境: ${{ inputs.desktop_environment }}
             - 构建时间: ${{ steps.get-timestamp.outputs.timestamp }}
