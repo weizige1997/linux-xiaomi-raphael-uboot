@@ -9,8 +9,8 @@ then
 fi
 
 # 设置 Ubuntu 版本
-VERSION="noble"
-UBUNTU_VERSION="24.04.3"
+UBUNTU_VERSION="noble"
+ARCH="arm64"
 
 # 创建根文件系统镜像
 truncate -s 2G rootfs.img
@@ -18,9 +18,8 @@ mkfs.ext4 rootfs.img
 mkdir rootdir
 mount -o loop rootfs.img rootdir
 
-# 下载 Ubuntu base 系统
-wget https://cdimage.ubuntu.com/ubuntu-base/releases/$VERSION/release/ubuntu-base-$UBUNTU_VERSION-base-arm64.tar.gz
-tar xzvf ubuntu-base-$UBUNTU_VERSION-base-arm64.tar.gz -C rootdir
+# debootstrap生成镜像
+debootstrap --arch=$ARCH $UBUNTU_VERSION rootdir https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/
 
 # 绑定系统目录
 mount --bind /dev rootdir/dev
@@ -37,6 +36,14 @@ echo "127.0.0.1 localhost
 # Chroot 安装步骤
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:\$PATH
 export DEBIAN_FRONTEND=noninteractive
+
+# 配置清华镜像源
+cat > rootdir/etc/apt/sources.list << 'EOF'
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ noble main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ noble-updates main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ noble-backports main restricted universe multiverse
+deb http://ports.ubuntu.com/ubuntu-ports/ noble-security main restricted universe multiverse
+EOF
 
 # 更新系统
 chroot rootdir apt update
