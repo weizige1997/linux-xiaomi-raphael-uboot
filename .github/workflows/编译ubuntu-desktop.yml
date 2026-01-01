@@ -62,7 +62,7 @@ jobs:
       - name: 编译 RootFS
         run: |
           # 如果内核包没有下载到，脚本会失败，但我们已经设置了 || true
-          sudo sh raphael-rootfs_build.sh "${{ inputs.desktop_environment }}" "${{ inputs.kernel_version }}"
+          sudo sh ubuntu-desktop_build.sh "${{ inputs.desktop_environment }}" "${{ inputs.kernel_version }}"
       
       # 获取当前时间戳
       - name: 获取构建时间
