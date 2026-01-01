@@ -12,7 +12,7 @@ on:
       desktop_environment:
         description: '桌面环境'
         required: true
-        default: 'task-gnome-desktop'
+        default: 'phosh'
 
 # 工作流配置
 jobs:
