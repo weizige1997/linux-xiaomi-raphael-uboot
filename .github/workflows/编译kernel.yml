@@ -15,6 +15,11 @@ jobs:
   build-kernel:
     # 在 Ubuntu 24.04 ARM 上运行
     runs-on: ubuntu-24.04-arm
+    
+    # 定义环境变量
+    env:
+      BUILD_TIMESTAMP: ${{ format('{0}', github.run_id) }}-${{ github.run_number }}
+    
     steps:
       # 步骤 1: 检出代码
       - name: 检出代码
@@ -58,7 +63,13 @@ jobs:
           # 执行内核编译脚本
           sudo sh raphael-kernel_build.sh ${{ inputs.kernel_version }}
       
-      # 步骤 6: 创建 GitHub Release 并上传编译产物
+      # 步骤 6: 获取当前时间戳
+      - name: 获取构建时间
+        id: get-timestamp
+        run: |
+          echo "timestamp=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+      
+      # 步骤 7: 创建 GitHub Release 并上传编译产物
       - name: 创建 Release 并上传产物
         uses: softprops/action-gh-release@v1
         with:
@@ -67,7 +78,8 @@ jobs:
           body: |
             小米 Raphael 设备内核编译产物
             - 版本: ${{ inputs.kernel_version }}
-            - 编译时间: ${{ date() }}
+            - 构建时间: ${{ steps.get-timestamp.outputs.timestamp }}
+            - 构建 ID: ${{ env.BUILD_TIMESTAMP }}
           draft: false
           prerelease: false
           files: |
@@ -75,7 +87,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      # 步骤 7: 上传编译产物作为工作流制品
+      # 步骤 8: 上传编译产物作为工作流制品
       - name: 上传内核包作为工作流制品
         uses: actions/upload-artifact@v4
         with:

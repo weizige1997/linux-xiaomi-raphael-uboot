@@ -19,6 +19,11 @@ jobs:
   build-rootfs:
     # 在 Ubuntu 24.04 ARM 上运行
     runs-on: ubuntu-24.04-arm
+    
+    # 定义环境变量
+    env:
+      BUILD_TIMESTAMP: ${{ format('{0}', github.run_id) }}-${{ github.run_number }}
+    
     steps:
       # 步骤 1: 检出代码
       - name: 检出代码
@@ -56,7 +61,13 @@ jobs:
         run: |
           sudo sh raphael-rootfs_build.sh "${{ inputs.desktop_environment }}" "${{ inputs.kernel_version }}"
       
-      # 步骤 6: 创建 GitHub Release 并上传镜像
+      # 步骤 6: 获取当前时间戳
+      - name: 获取构建时间
+        id: get-timestamp
+        run: |
+          echo "timestamp=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+      
+      # 步骤 7: 创建 GitHub Release 并上传镜像
       - name: 创建 Release 并上传 RootFS 镜像
         uses: softprops/action-gh-release@v1
         with:
@@ -66,7 +77,8 @@ jobs:
             小米 Raphael 设备 RootFS 镜像
             - 内核版本: ${{ inputs.kernel_version }}
             - 桌面环境: ${{ inputs.desktop_environment }}
-            - 编译时间: ${{ date() }}
+            - 构建时间: ${{ steps.get-timestamp.outputs.timestamp }}
+            - 构建 ID: ${{ env.BUILD_TIMESTAMP }}
           draft: false
           prerelease: false
           files: |
@@ -75,7 +87,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      # 步骤 7: 上传镜像作为工作流制品
+      # 步骤 8: 上传镜像作为工作流制品
       - name: 上传 RootFS 镜像作为工作流制品
         uses: actions/upload-artifact@v4
         with:
