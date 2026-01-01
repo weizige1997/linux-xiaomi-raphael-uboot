@@ -83,9 +83,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: kernel-v${{ inputs.kernel_version }}
-          name: "内核编译产物 v${{ inputs.kernel_version }}"
+          name: "Redmi raphael linux内核 v${{ inputs.kernel_version }}"
           body: |
-            小米 Raphael 设备内核编译产物
+            Redmi raphael linux内核
             - 版本: ${{ inputs.kernel_version }}
             - 构建时间: ${{ steps.get-timestamp.outputs.timestamp }}
             - 构建 ID: ${{ env.BUILD_TIMESTAMP }}
