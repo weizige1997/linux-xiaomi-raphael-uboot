@@ -45,6 +45,15 @@ chroot rootdir apt upgrade -y
 # 安装基础软件包
 chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano tmux network-manager alsa-ucm-conf systemd-boot initramfs-tools chrony curl wget u-boot-tools
 
+# 安装中文语言包和时区配置
+chroot rootdir apt install -y locales tzdata
+echo "zh_CN.UTF-8 UTF-8" | tee -a rootdir/etc/locale.gen
+chroot rootdir locale-gen zh_CN.UTF-8
+echo "LANG=zh_CN.UTF-8" | tee rootdir/etc/locale.conf
+echo "LC_ALL=zh_CN.UTF-8" | tee -a rootdir/etc/locale.conf
+ln -sf /usr/share/zoneinfo/Asia/Shanghai rootdir/etc/localtime
+echo "Asia/Shanghai" | tee rootdir/etc/timezone
+
 # 安装设备特定软件包
 chroot rootdir apt install -y rmtfs protection-domain-mapper tqftpserv
 
@@ -67,6 +76,11 @@ PARTLABEL=cache /boot vfat umask=0077 0 1" | tee rootdir/etc/fstab
 echo "root:1234" | chroot rootdir chpasswd
 chroot rootdir useradd -m -G sudo -s /bin/bash user
 echo "user:1234" | chroot rootdir chpasswd
+
+# 设置用户中文环境
+echo "export LANG=zh_CN.UTF-8" | tee -a rootdir/home/user/.bashrc
+echo "export LANGUAGE=zh_CN:zh" | tee -a rootdir/home/user/.bashrc
+echo "export LC_ALL=zh_CN.UTF-8" | tee -a rootdir/home/user/.bashrc
 
 # 允许SSH root登录
 echo "PermitRootLogin yes" | tee -a rootdir/etc/ssh/sshd_config
