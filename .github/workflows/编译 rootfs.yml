@@ -1,0 +1,85 @@
+# RootFS 编译工作流 - 在 Ubuntu 24.04 ARM 上运行
+name: RootFS 编译
+
+# 手动触发，可指定参数
+on:
+  workflow_dispatch:
+    inputs:
+      kernel_version:
+        description: '内核版本号 (从 Release 下载对应版本)'
+        required: true
+        default: '6.18'
+      desktop_environment:
+        description: '桌面环境'
+        required: true
+        default: 'ubuntu-desktop'
+
+# 工作流配置
+jobs:
+  build-rootfs:
+    # 在 Ubuntu 24.04 ARM 上运行
+    runs-on: ubuntu-24.04-arm
+    steps:
+      # 步骤 1: 检出代码
+      - name: 检出代码
+        uses: actions/checkout@v4
+      
+      # 步骤 2: 安装依赖
+      - name: 安装依赖
+        run: |
+          sudo apt update
+          sudo apt install -y unzip build-essential gcc-aarch64-linux-gnu bc flex bison \
+          7zip kmod bash cpio binutils tar git wget dpkg libssl-dev clang llvm lld \
+          e2fsprogs parted fdisk
+      
+      # 步骤 3: 从 GitHub Release 下载内核包
+      - name: 下载内核编译产物
+        run: |
+          # 从 Release 下载指定版本的内核包
+          curl -L -o linux-xiaomi-raphael.deb \
+            "https://github.com/${{ github.repository }}/releases/download/kernel-v${{ inputs.kernel_version }}/linux-xiaomi-raphael.deb"
+          curl -L -o firmware-xiaomi-raphael.deb \
+            "https://github.com/${{ github.repository }}/releases/download/kernel-v${{ inputs.kernel_version }}/firmware-xiaomi-raphael.deb"
+          curl -L -o alsa-xiaomi-raphael.deb \
+            "https://github.com/${{ github.repository }}/releases/download/kernel-v${{ inputs.kernel_version }}/alsa-xiaomi-raphael.deb"
+      
+      # 步骤 4: 创建 deb 包目录
+      - name: 准备内核包目录
+        run: |
+          mkdir -p xiaomi-raphael-debs_${{ inputs.kernel_version }}
+          mv linux-xiaomi-raphael.deb xiaomi-raphael-debs_${{ inputs.kernel_version }}/
+          mv firmware-xiaomi-raphael.deb xiaomi-raphael-debs_${{ inputs.kernel_version }}/
+          mv alsa-xiaomi-raphael.deb xiaomi-raphael-debs_${{ inputs.kernel_version }}/
+      
+      # 步骤 5: 编译 RootFS
+      - name: 编译 RootFS
+        run: |
+          sudo sh raphael-rootfs_build.sh "${{ inputs.desktop_environment }}" "${{ inputs.kernel_version }}"
+      
+      # 步骤 6: 创建 GitHub Release 并上传镜像
+      - name: 创建 Release 并上传 RootFS 镜像
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: rootfs-v${{ inputs.kernel_version }}-${{ inputs.desktop_environment }}
+          name: "RootFS 镜像 v${{ inputs.kernel_version }} (${{ inputs.desktop_environment }})"
+          body: |
+            小米 Raphael 设备 RootFS 镜像
+            - 内核版本: ${{ inputs.kernel_version }}
+            - 桌面环境: ${{ inputs.desktop_environment }}
+            - 编译时间: ${{ date() }}
+          draft: false
+          prerelease: false
+          files: |
+            rootfs.7z
+            xiaomi-k20pro-boot.img
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      # 步骤 7: 上传镜像作为工作流制品
+      - name: 上传 RootFS 镜像作为工作流制品
+        uses: actions/upload-artifact@v4
+        with:
+          name: rootfs-image-v${{ inputs.kernel_version }}
+          path: |
+            rootfs.7z
+            xiaomi-k20pro-boot.img
