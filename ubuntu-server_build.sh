@@ -63,6 +63,15 @@ chroot rootdir update-initramfs -c -k all
 echo "PARTLABEL=userdata / ext4 errors=remount-ro,x-systemd.growfs 0 1
 PARTLABEL=cache /boot vfat umask=0077 0 1" | tee rootdir/etc/fstab
 
+# 创建默认用户
+echo "root:1234" | chroot rootdir chpasswd
+chroot rootdir useradd -m -G sudo -s /bin/bash user
+echo "user:1234" | chroot rootdir chpasswd
+
+# 允许SSH root登录
+echo "PermitRootLogin yes" | tee -a rootdir/etc/ssh/sshd_config
+echo "PasswordAuthentication yes" | tee -a rootdir/etc/ssh/sshd_config
+
 # 清理 apt 缓存
 chroot rootdir apt clean
 

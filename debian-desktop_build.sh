@@ -67,6 +67,10 @@ echo "root:1234" | chroot rootdir chpasswd
 chroot rootdir useradd -m -G sudo -s /bin/bash user
 echo "user:1234" | chroot rootdir chpasswd
 
+# 允许SSH root登录
+echo "PermitRootLogin yes" | tee -a rootdir/etc/ssh/sshd_config
+echo "PasswordAuthentication yes" | tee -a rootdir/etc/ssh/sshd_config
+
 # 清理 apt 缓存
 chroot rootdir apt clean
 

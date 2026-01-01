@@ -10,9 +10,14 @@ on:
         required: true
         default: '6.18'
       desktop_environment:
-        description: '桌面环境'
+        description: '桌面环境 (phosh-core, phosh-full, phosh-phone)'
         required: true
-        default: 'ubuntu-desktop'
+        default: 'phosh-full'
+        type: choice
+        options:
+          - phosh-core
+          - phosh-full
+          - phosh-phone
 
 # 工作流配置
 jobs:

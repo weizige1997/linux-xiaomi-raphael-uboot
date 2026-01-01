@@ -45,29 +45,6 @@ chroot rootdir apt upgrade -y
 # 安装基础软件包
 chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano systemd-boot initramfs-tools chrony curl wget u-boot-tools $1
 
-# 安装中文语言支持
-chroot rootdir apt install -y \
-    fonts-arphic-uming \
-    fonts-arphic-ukai \
-    fonts-noto-cjk-extra \
-    language-pack-gnome-zh-hans \
-    language-pack-gnome-zh-hans-base \
-    language-pack-zh-hans \
-    language-pack-zh-hans-base \
-    gnome-user-docs-zh-hans \
-    libopencc-data \
-    libmarisa0 \
-    libopencc1.1 \
-    libpinyin-data \
-    libpinyin15 \
-    ibus-libpinyin \
-    ibus-table-wubi \
-    libreoffice-help-common \
-    libreoffice-l10n-zh-cn \
-    libreoffice-help-zh-cn \
-    thunderbird-locale-zh-cn \
-    thunderbird-locale-zh-hans
-
 # 安装设备特定软件包
 chroot rootdir apt install -y rmtfs protection-domain-mapper tqftpserv
 
@@ -86,9 +63,14 @@ chroot rootdir update-initramfs -c -k all
 echo "PARTLABEL=userdata / ext4 errors=remount-ro,x-systemd.growfs 0 1
 PARTLABEL=cache /boot vfat umask=0077 0 1" | tee rootdir/etc/fstab
 
-# 创建 GDM 目录
-mkdir rootdir/var/lib/gdm
-touch rootdir/var/lib/gdm/run-initial-setup
+# 创建默认用户
+echo "root:1234" | chroot rootdir chpasswd
+chroot rootdir useradd -m -G sudo -s /bin/bash user
+echo "user:1234" | chroot rootdir chpasswd
+
+# 允许SSH root登录
+echo "PermitRootLogin yes" | tee -a rootdir/etc/ssh/sshd_config
+echo "PasswordAuthentication yes" | tee -a rootdir/etc/ssh/sshd_config
 
 # 清理 apt 缓存
 chroot rootdir apt clean
