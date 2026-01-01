@@ -39,7 +39,7 @@
 - fastboot flash userdata rootfs.img
 - fastboot flash cache xiaomi-k20pro-boot.img
 - fastboot flash boot u-boot.img
-4.擦除dtbo分区。
+4. 擦除dtbo分区。
 - fastboot erase dtbo
 
 ## 感谢
