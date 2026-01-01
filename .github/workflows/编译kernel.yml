@@ -72,7 +72,7 @@ jobs:
       - name: 获取构建时间
         id: get-timestamp
         run: |
-          echo "timestamp=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+          echo "timestamp=$(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
       
       # 列出编译产物
       - name: 列出编译产物

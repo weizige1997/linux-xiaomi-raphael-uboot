@@ -65,7 +65,7 @@ jobs:
       - name: 获取构建时间
         id: get-timestamp
         run: |
-          echo "timestamp=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+          echo "timestamp=$(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
       
       # 创建 GitHub Release 并上传 Debian Server 镜像
       - name: 创建 Release 并上传 Debian Server 镜像
