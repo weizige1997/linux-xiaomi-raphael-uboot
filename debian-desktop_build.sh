@@ -42,10 +42,7 @@ chroot rootdir apt update
 chroot rootdir apt upgrade -y
 
 # 安装基础软件包
-chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano systemd-boot initramfs-tools chrony curl wget u-boot-tools
-
-# 安装桌面环境
-chroot rootdir apt install -y phosh phosh-mobile-tweaks phosh-plugins phoc squeekboard feedbackd iio-sensor-proxy network-manager-gnome gdm3
+chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano systemd-boot initramfs-tools chrony curl wget u-boot-tools $1
 
 # 安装设备特定软件包
 chroot rootdir apt install -y rmtfs protection-domain-mapper tqftpserv
@@ -64,6 +61,11 @@ chroot rootdir update-initramfs -c -k all
 # 配置 fstab
 echo "PARTLABEL=userdata / ext4 errors=remount-ro,x-systemd.growfs 0 1
 PARTLABEL=cache /boot vfat umask=0077 0 1" | tee rootdir/etc/fstab
+
+# 创建默认用户
+echo "root:1234" | chroot rootdir chpasswd
+chroot rootdir useradd -m -G sudo -s /bin/bash user
+echo "user:1234" | chroot rootdir chpasswd
 
 # 清理 apt 缓存
 chroot rootdir apt clean
