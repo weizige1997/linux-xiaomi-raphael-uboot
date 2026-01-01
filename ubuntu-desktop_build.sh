@@ -108,7 +108,7 @@ umount boot_tmp
 rm -d boot_tmp
 
 # 删除 wifi 证书
-rm rootdir/lib/firmware/reg*
+rm -f rootdir/lib/firmware/reg*
 
 # 卸载所有挂载点
 umount rootdir/sys
