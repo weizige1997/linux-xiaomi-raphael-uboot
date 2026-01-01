@@ -13,7 +13,7 @@ VERSION="noble"
 UBUNTU_VERSION="24.04.3"
 
 # 创建根文件系统镜像
-truncate -s 3G rootfs.img
+truncate -s 2G rootfs.img
 mkfs.ext4 rootfs.img
 mkdir rootdir
 mount -o loop rootfs.img rootdir
@@ -43,7 +43,7 @@ chroot rootdir apt update
 chroot rootdir apt upgrade -y
 
 # 安装基础软件包
-chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano tmux network-manager systemd-boot initramfs-tools chrony curl wget u-boot-tools
+chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano tmux network-manager alsa-ucm-conf systemd-boot initramfs-tools chrony curl wget u-boot-tools
 
 # 安装设备特定软件包
 chroot rootdir apt install -y rmtfs protection-domain-mapper tqftpserv
