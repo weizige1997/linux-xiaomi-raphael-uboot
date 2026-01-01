@@ -36,11 +36,11 @@
 1. 解锁Bootloader。
 2. 刷入第三方Recovery（如TWRP）。
 3. 通过fastboot刷入镜像。
-fastboot flash userdata rootfs.img
-fastboot flash cache xiaomi-k20pro-boot.img
-fastboot flash boot u-boot.img
+- fastboot flash userdata rootfs.img
+- fastboot flash cache xiaomi-k20pro-boot.img
+- fastboot flash boot u-boot.img
 4.擦除dtbo
-fastboot erase dtbo
+- fastboot erase dtbo
 
 ## 感谢
 - [@cuicanmx](https://github.com/cuicanmx) - 提供帮助以及创新思路
