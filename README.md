@@ -1,5 +1,5 @@
 
-# Ubuntu for Redmi K20 Pro
+# Ubuntu for xiaomi K20 Pro
 
 ## 📋 目前工作
 
