@@ -13,7 +13,7 @@ DEBIAN_VERSION="trixie"
 ARCH="arm64"
 
 # 创建根文件系统镜像
-truncate -s 8G rootfs.img
+truncate -s 6G rootfs.img
 mkfs.ext4 rootfs.img
 mkdir rootdir
 mount -o loop rootfs.img rootdir
@@ -80,7 +80,7 @@ umount boot_tmp
 rm -d boot_tmp
 
 # 删除 wifi 证书
-rm rootdir/lib/firmware/reg*
+rm -f rootdir/lib/firmware/reg*
 
 # 卸载所有挂载点
 umount rootdir/sys
