@@ -16,16 +16,21 @@ jobs:
     # 在 Ubuntu 24.04 ARM 上运行
     runs-on: ubuntu-24.04-arm
     
+    # 设置权限，允许创建 Release
+    permissions:
+      contents: write   # 允许创建 Release 和上传文件
+      packages: write   # 允许上传包（如果需要）
+    
     # 定义环境变量
     env:
       BUILD_TIMESTAMP: ${{ format('{0}', github.run_id) }}-${{ github.run_number }}
     
     steps:
-      # 步骤 1: 检出代码
+      # 检出代码
       - name: 检出代码
         uses: actions/checkout@v4
       
-      # 步骤 2: 安装编译依赖
+      # 安装编译依赖
       - name: 安装编译依赖
         run: |
           sudo apt update
@@ -33,7 +38,7 @@ jobs:
           7zip kmod bash cpio binutils tar git wget dpkg libssl-dev clang llvm lld \
           libelf-dev python3 rsync
       
-      # 步骤 3: 设置 ccache 缓存
+      # 设置 ccache 缓存
       - name: 设置 ccache
         uses: actions/cache@v3
         with:
@@ -42,7 +47,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-ccache-kernel-
       
-      # 步骤 4: 安装并配置 ccache
+      # 安装并配置 ccache
       - name: 安装配置 ccache
         run: |
           sudo apt install -y ccache
@@ -50,7 +55,7 @@ jobs:
           echo "CCACHE_MAXSIZE=5G" >> $GITHUB_ENV
           echo "PATH=/usr/lib/ccache:$PATH" >> $GITHUB_ENV
       
-      # 步骤 5: 编译内核
+      # 编译内核
       - name: 编译内核
         env:
           CCACHE_DIR: ${{ env.CCACHE_DIR }}
@@ -63,13 +68,17 @@ jobs:
           # 执行内核编译脚本
           sudo sh raphael-kernel_build.sh ${{ inputs.kernel_version }}
       
-      # 步骤 6: 获取当前时间戳
+      # 获取当前时间戳
       - name: 获取构建时间
         id: get-timestamp
         run: |
           echo "timestamp=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
       
-      # 步骤 7: 创建 GitHub Release 并上传编译产物
+      # 列出编译产物
+      - name: 列出编译产物
+        run: ls -la *.deb
+      
+      # 创建 GitHub Release 并上传编译产物
       - name: 创建 Release 并上传产物
         uses: softprops/action-gh-release@v1
         with:
@@ -87,7 +96,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      # 步骤 8: 上传编译产物作为工作流制品
+      # 上传编译产物作为工作流制品
       - name: 上传内核包作为工作流制品
         uses: actions/upload-artifact@v4
         with:
