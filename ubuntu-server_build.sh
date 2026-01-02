@@ -12,7 +12,7 @@ fi
 UBUNTU_VERSION="noble"
 
 # 创建根文件系统镜像
-truncate -s 2G rootfs.img
+truncate -s 3G rootfs.img
 mkfs.ext4 rootfs.img
 mkdir rootdir
 mount -o loop rootfs.img rootdir
