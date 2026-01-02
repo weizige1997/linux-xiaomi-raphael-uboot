@@ -1,7 +1,16 @@
-# Ubuntu for xiaomi K20 Pro
+# 小米 Raphael 设备 Linux 系统镜像构建项目
 
-## 项目简介
-本项目旨在为小米K20 Pro（代号raphael）设备移植Ubuntu和Debian系统。通过本项目，您可以在小米K20 Pro上运行Linux桌面或服务器系统。
+本项目提供用于小米 Raphael 设备（Redmi K20 Pro）的 Debian/Ubuntu Linux 系统镜像构建脚本和自动化工作流，支持桌面环境和服务器版本。
+
+## 📋 项目概述
+
+本项目包含完整的构建工具链，可用于构建适用于小米 Raphael 设备的 Linux 系统镜像，包括：
+
+- **Debian Desktop** - 带 Phosh 桌面环境的 Debian 系统
+- **Debian Server** - 无图形界面的 Debian 服务器系统
+- **Ubuntu Desktop** - 带 Phosh 桌面环境的 Ubuntu 系统
+- **Ubuntu Server** - 无图形界面的 Ubuntu 服务器系统
+- **Linux Kernel** - 专门为 Raphael 设备优化的内核
 
 ## 📋 目前工作
 
@@ -16,33 +25,76 @@
 - ✅ GPU
 - ✅ FDE
 
-## 内核版本
-- stable: 6.18.y
+## 🚀 快速开始
 
-## 构建指南
+### 使用 GitHub Actions 自动化构建
 
-### GitHub Actions 构建
-本项目提供了以下GitHub Actions工作流，可以在GitHub上自动构建：
-- 内核编译工作流：编译指定版本的内核，并生成deb包。
-- Ubuntu Desktop 编译工作流：构建Ubuntu桌面镜像。
-- Ubuntu Server 编译工作流：构建Ubuntu服务器镜像。
-- Debian Desktop 编译工作流：构建Debian桌面镜像。
-- Debian Server 编译工作流：构建Debian服务器镜像。
+1. **Fork 本仓库**到你的 GitHub 账户
 
-每个工作流都可以手动触发，并需要指定内核版本等参数。
+2. **构建内核**：
+   - 进入仓库的 Actions 页面
+   - 选择 "内核编译" 工作流
+   - 点击 "Run workflow"
+   - 输入内核版本号（如 `6.18`）
+   - 等待构建完成，产物将自动发布到 Releases
 
-## 刷机指南
+3. **构建系统镜像**：
+   - 选择对应的工作流（如 "编译debian-desktop"）
+   - 点击 "Run workflow"
+   - 输入参数：
+     - `kernel_version`：上一步构建的内核版本号
+     - `desktop_environment`（仅桌面版）：选择桌面环境
+       - `phosh-core`：基础 Phosh 环境
+       - `phosh-full`：完整的 Phosh 环境
+       - `phosh-phone`：手机优化的 Phosh 环境
+   - 等待构建完成，镜像将自动发布到 Releases
 
-1. 解锁Bootloader。
-2. 刷入第三方Recovery（如TWRP）。
-3. 通过fastboot刷入镜像。
-- fastboot flash userdata rootfs.img
-- fastboot flash cache xiaomi-k20pro-boot.img
-- fastboot flash boot u-boot.img
-4. 擦除dtbo分区。
-- fastboot erase dtbo
+## 📦 镜像特性
 
-## 感谢
+### 通用特性
+- ✅ 简体中文语言环境
+- ✅ 亚洲/上海时区
+- ✅ 预装 SSH 服务器
+- ✅ 允许 root SSH 登录
+- ✅ 包含必要的设备驱动和固件
+- ✅ 默认用户：`user`（密码：`1234`），`root`（密码：`1234`）
+
+### 桌面版额外特性
+- ✅ Phosh 移动桌面环境
+
+### 服务器版额外特性
+- ✅ 网络管理器
+- ✅ Tmux 终端复用器
+
+## 🔧 安装到设备
+
+### 准备工作
+1. **解锁 Bootloader**：确保设备已解锁 Bootloader
+2. **安装工具**：安装 `fastboot` 和 `adb`
+
+### 刷机步骤
+
+```bash
+# 1. 进入 Fastboot 模式
+adb reboot bootloader
+
+# 2. 刷入 boot 镜像
+fastboot flash cache xiaomi-k20pro-boot.img
+fastboot flash boot u-boot.img
+
+# 3. 刷入系统镜像（需要先解压 rootfs.7z）
+fastboot flash userdata rootfs.img
+
+# 4. 重启设备
+fastboot reboot
+```
+
+## 🙏 致谢
+
+- 感谢所有 Linux 内核开发者的辛勤工作
+- 感谢 Debian 和 Ubuntu 社区
+- 感谢 Phosh 桌面环境开发团队
+- 感谢所有贡献者和用户的支持
 - [@cuicanmx](https://github.com/cuicanmx) - 提供帮助以及创新思路
 - [@map220v](https://github.com/map220v/ubuntu-xiaomi-nabu) - 原项目
 - [@Pc1598](https://github.com/Pc1598) - sm8150-mainline-raphael内核维护
