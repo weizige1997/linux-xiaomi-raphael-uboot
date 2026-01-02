@@ -8,9 +8,8 @@ then
   exit
 fi
 
-# 设置 Ubuntu 版本
-VERSION="noble"
-UBUNTU_VERSION="24.04.3"
+# 设置 Debian 版本
+DEBIAN_VERSION="trixie"
 
 # 创建根文件系统镜像
 truncate -s 6G rootfs.img
@@ -18,9 +17,8 @@ mkfs.ext4 rootfs.img
 mkdir rootdir
 mount -o loop rootfs.img rootdir
 
-# 下载 Ubuntu base 系统
-wget https://cdimage.ubuntu.com/ubuntu-base/releases/$VERSION/release/ubuntu-base-$UBUNTU_VERSION-base-arm64.tar.gz
-tar xzvf ubuntu-base-$UBUNTU_VERSION-base-arm64.tar.gz -C rootdir
+# debootstrap生成镜像
+debootstrap --arch=arm64 $DEBIAN_VERSION rootdir https://mirrors.tuna.tsinghua.edu.cn/debian/
 
 # 绑定系统目录
 mount --bind /dev rootdir/dev
@@ -38,35 +36,31 @@ echo "127.0.0.1 localhost
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:\$PATH
 export DEBIAN_FRONTEND=noninteractive
 
+# 配置清华镜像源
+cat > rootdir/etc/apt/sources.list << 'EOF'
+deb http://mirrors.tuna.tsinghua.edu.cn/debian/ trixie main contrib non-free non-free-firmware
+deb http://mirrors.tuna.tsinghua.edu.cn/debian/ trixie-updates main contrib non-free non-free-firmware
+deb http://mirrors.tuna.tsinghua.edu.cn/debian/ trixie-backports main contrib non-free non-free-firmware
+deb http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware
+EOF
+
 # 更新系统
 chroot rootdir apt update
 chroot rootdir apt upgrade -y
 
 # 安装基础软件包
-chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano systemd-boot initramfs-tools chrony curl wget u-boot-tools $1
+chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano systemd-boot initramfs-tools chrony curl wget $1
 
-# 安装中文语言支持
-chroot rootdir apt install -y \
-    fonts-arphic-uming \
-    fonts-arphic-ukai \
-    fonts-noto-cjk-extra \
-    language-pack-gnome-zh-hans \
-    language-pack-gnome-zh-hans-base \
-    language-pack-zh-hans \
-    language-pack-zh-hans-base \
-    gnome-user-docs-zh-hans \
-    libopencc-data \
-    libmarisa0 \
-    libopencc1.1 \
-    libpinyin-data \
-    libpinyin15 \
-    ibus-libpinyin \
-    ibus-table-wubi \
-    libreoffice-help-common \
-    libreoffice-l10n-zh-cn \
-    libreoffice-help-zh-cn \
-    thunderbird-locale-zh-cn \
-    thunderbird-locale-zh-hans
+# 安装语言包和设置默认语言为简体中文
+chroot rootdir apt install -y locales locales-all tzdata
+echo "LANG=zh_CN.UTF-8" | tee rootdir/etc/default/locale
+echo "LANGUAGE=zh_CN:zh" | tee -a rootdir/etc/default/locale
+echo "LC_ALL=zh_CN.UTF-8" | tee -a rootdir/etc/default/locale
+
+# 设置时区为亚洲/上海
+echo "Asia/Shanghai" | tee rootdir/etc/timezone
+chroot rootdir ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+chroot rootdir dpkg-reconfigure --frontend noninteractive tzdata
 
 # 安装设备特定软件包
 chroot rootdir apt install -y rmtfs protection-domain-mapper tqftpserv
@@ -82,13 +76,26 @@ chroot rootdir dpkg -i /tmp/alsa-xiaomi-raphael.deb
 rm rootdir/tmp/*-xiaomi-raphael.deb
 chroot rootdir update-initramfs -c -k all
 
+# 启用 Phosh 服务
+chroot rootdir systemctl enable phosh
+
 # 配置 fstab
 echo "PARTLABEL=userdata / ext4 errors=remount-ro,x-systemd.growfs 0 1
 PARTLABEL=cache /boot vfat umask=0077 0 1" | tee rootdir/etc/fstab
 
-# 创建 GDM 目录
-mkdir rootdir/var/lib/gdm
-touch rootdir/var/lib/gdm/run-initial-setup
+# 创建默认用户
+echo "root:1234" | chroot rootdir chpasswd
+chroot rootdir useradd -m -G sudo -s /bin/bash user
+echo "user:1234" | chroot rootdir chpasswd
+
+# 设置用户中文环境
+echo "export LANG=zh_CN.UTF-8" | tee -a rootdir/home/user/.bashrc
+echo "export LANGUAGE=zh_CN:zh" | tee -a rootdir/home/user/.bashrc
+echo "export LC_ALL=zh_CN.UTF-8" | tee -a rootdir/home/user/.bashrc
+
+# 允许SSH root登录
+echo "PermitRootLogin yes" | tee -a rootdir/etc/ssh/sshd_config
+echo "PasswordAuthentication yes" | tee -a rootdir/etc/ssh/sshd_config
 
 # 清理 apt 缓存
 chroot rootdir apt clean
@@ -108,7 +115,7 @@ umount boot_tmp
 rm -d boot_tmp
 
 # 删除 wifi 证书
-rm rootdir/lib/firmware/reg*
+rm -f rootdir/lib/firmware/reg*
 
 # 卸载所有挂载点
 umount rootdir/sys
