@@ -95,6 +95,29 @@ echo "export LC_ALL=zh_CN.UTF-8" | tee -a rootdir/home/user/.bashrc
 echo "PermitRootLogin yes" | tee -a rootdir/etc/ssh/sshd_config
 echo "PasswordAuthentication yes" | tee -a rootdir/etc/ssh/sshd_config
 
+# 添加屏幕管理命令到全局bash配置
+cat >> rootdir/etc/bash.bashrc << 'EOF'
+
+# 屏幕管理命令
+1() {
+    if [ $(id -u) -eq 0 ]; then
+        echo 1 > /sys/class/graphics/fb0/blank
+    else
+        echo 1 | sudo tee /sys/class/graphics/fb0/blank > /dev/null
+    fi
+    echo "屏幕已关闭"
+}
+
+0() {
+    if [ $(id -u) -eq 0 ]; then
+        echo 0 > /sys/class/graphics/fb0/blank
+    else
+        echo 0 | sudo tee /sys/class/graphics/fb0/blank > /dev/null
+    fi
+    echo "屏幕已开启"
+}
+EOF
+
 # 清理 apt 缓存
 chroot rootdir apt clean
 
