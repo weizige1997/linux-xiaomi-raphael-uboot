@@ -85,7 +85,10 @@ fastboot flash boot u-boot.img
 # 3. 刷入系统镜像（需要先解压 rootfs.7z）
 fastboot flash userdata rootfs.img
 
-# 4. 重启设备
+# 4. 擦除dtbo分区
+fastboot erase dtbo
+
+# 5. 重启设备
 fastboot reboot
 ```
 
