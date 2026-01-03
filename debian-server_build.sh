@@ -12,7 +12,7 @@ fi
 DEBIAN_VERSION="trixie"
 
 # 创建根文件系统镜像
-truncate -s 3G rootfs.img
+truncate -s 2G rootfs.img
 mkfs.ext4 rootfs.img
 mkdir rootdir
 mount -o loop rootfs.img rootdir
@@ -49,18 +49,27 @@ chroot rootdir apt update
 chroot rootdir apt upgrade -y
 
 # 安装基础软件包
-chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano network-manager alsa-ucm-conf systemd-boot initramfs-tools chrony curl wget
+chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano network-manager systemd-boot initramfs-tools chrony curl wget locales tzdata language-pack-zh-hans fonts-wqy-microhei kmscon
 
-# 安装语言包和设置默认语言为简体中文
-chroot rootdir apt install -y locales locales-all tzdata
+# 配置时区为中国标准时间
+chroot rootdir ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+echo "Asia/Shanghai" | tee rootdir/etc/timezone
+
+# 配置本地化为简体中文
+echo "zh_CN.UTF-8 UTF-8" | tee -a rootdir/etc/locale.gen
+chroot rootdir locale-gen
 echo "LANG=zh_CN.UTF-8" | tee rootdir/etc/default/locale
 echo "LANGUAGE=zh_CN:zh" | tee -a rootdir/etc/default/locale
-echo "LC_ALL=zh_CN.UTF-8" | tee -a rootdir/etc/default/locale
 
-# 设置时区为亚洲/上海
-echo "Asia/Shanghai" | tee rootdir/etc/timezone
-chroot rootdir ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-chroot rootdir dpkg-reconfigure --frontend noninteractive tzdata
+# 配置 kmscon 以支持中文控制台显示
+mkdir -p rootdir/etc/kmscon
+echo "font-name=WenQuanYi Micro Hei Mono
+font-size=14
+xkb-layout=us" | tee rootdir/etc/kmscon/kmscon.conf
+
+# 启用 kmscon 服务接管控制台
+chroot rootdir systemctl disable getty@tty1.service
+chroot rootdir ln -sf /usr/lib/systemd/system/kmsconvt@.service /etc/systemd/system/autovt@.service
 
 # 安装设备特定软件包
 chroot rootdir apt install -y rmtfs protection-domain-mapper tqftpserv
@@ -72,7 +81,6 @@ sed -i '/ConditionKernelVersion/d' rootdir/lib/systemd/system/pd-mapper.service
 cp xiaomi-raphael-debs_$1/*-xiaomi-raphael.deb rootdir/tmp/
 chroot rootdir dpkg -i /tmp/linux-xiaomi-raphael.deb
 chroot rootdir dpkg -i /tmp/firmware-xiaomi-raphael.deb
-chroot rootdir dpkg -i /tmp/alsa-xiaomi-raphael.deb
 rm rootdir/tmp/*-xiaomi-raphael.deb
 chroot rootdir update-initramfs -c -k all
 
@@ -84,11 +92,6 @@ PARTLABEL=cache /boot vfat umask=0077 0 1" | tee rootdir/etc/fstab
 echo "root:1234" | chroot rootdir chpasswd
 chroot rootdir useradd -m -G sudo -s /bin/bash user
 echo "user:1234" | chroot rootdir chpasswd
-
-# 设置用户中文环境
-echo "export LANG=zh_CN.UTF-8" | tee -a rootdir/home/user/.bashrc
-echo "export LANGUAGE=zh_CN:zh" | tee -a rootdir/home/user/.bashrc
-echo "export LC_ALL=zh_CN.UTF-8" | tee -a rootdir/home/user/.bashrc
 
 # 允许SSH root登录
 echo "PermitRootLogin yes" | tee -a rootdir/etc/ssh/sshd_config
@@ -103,7 +106,6 @@ leijun() {
     else
         echo 1 | sudo tee /sys/class/graphics/fb0/blank > /dev/null
     fi
-    echo "屏幕已关闭"
 }
 
 jinfan() {
@@ -112,7 +114,6 @@ jinfan() {
     else
         echo 0 | sudo tee /sys/class/graphics/fb0/blank > /dev/null
     fi
-    echo "屏幕已开启"
 }
 EOF
 
@@ -129,9 +130,6 @@ cp -r rootdir/boot/dtbs/qcom boot_tmp/dtbs/
 cp rootdir/boot/config-* boot_tmp/
 cp rootdir/boot/initrd.img-* boot_tmp/initramfs
 cp rootdir/boot/vmlinuz-* boot_tmp/linux.efi
-
-# 修改日志级别
-sed -i 's/loglevel=3/loglevel=1/g' boot_tmp/loader/entries/ubuntu.conf
 
 umount boot_tmp
 rm -d boot_tmp

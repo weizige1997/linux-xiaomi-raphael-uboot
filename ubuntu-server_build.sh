@@ -69,7 +69,7 @@ xkb-layout=us" | tee rootdir/etc/kmscon/kmscon.conf
 
 # 启用 kmscon 服务接管控制台
 chroot rootdir systemctl disable getty@tty1.service
-chroot rootdir ln -s /usr/lib/systemd/system/kmsconvt@.service /etc/systemd/system/autovt@.service
+chroot rootdir ln -sf /usr/lib/systemd/system/kmsconvt@.service /etc/systemd/system/autovt@.service
 
 # 安装设备特定软件包
 chroot rootdir apt install -y rmtfs protection-domain-mapper tqftpserv
