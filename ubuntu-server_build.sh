@@ -49,24 +49,19 @@ chroot rootdir apt update
 chroot rootdir apt upgrade -y
 
 # 安装基础软件包
-chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano network-manager systemd-boot initramfs-tools chrony curl wget locales tzdata fonts-wqy-microhei
+chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano network-manager systemd-boot initramfs-tools chrony curl wget locales tzdata language-pack-zh-hans
 
 # 设置时区和语言
 echo "Asia/Shanghai" > rootdir/etc/timezone
 chroot rootdir ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-cat > rootdir/etc/locale.gen << 'EOF'
-en_US.UTF-8 UTF-8
-zh_CN.UTF-8 UTF-8
-EOF
-chroot rootdir locale-gen
-chroot rootdir env -u LC_ALL update-locale LANG=en_US.UTF-8 LANGUAGE=en_US:en
+chroot rootdir locale-gen en_US.UTF-8 zh_CN.UTF-8
+chroot rootdir update-locale LANG=en_US.UTF-8
 
 # 配置动态语言切换（SSH使用中文，TTY使用英文）
 cat > rootdir/etc/profile.d/99-locale-fix.sh << 'EOF'
 # 如果是SSH连接，则使用中文
 if [ -n "$SSH_CONNECTION" ] || [ -n "$SSH_TTY" ]; then
     export LANG=zh_CN.UTF-8
-	export LANGUAGE=zh_CN:zh
     export LC_ALL=zh_CN.UTF-8
 fi
 EOF
