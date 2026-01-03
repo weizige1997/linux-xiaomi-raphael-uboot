@@ -18,7 +18,7 @@ mkdir rootdir
 mount -o loop rootfs.img rootdir
 
 # debootstrap生成镜像
-debootstrap --arch=arm64 $DEBIAN_VERSION rootdir http://deb.debian.org/debian/
+debootstrap --arch=arm64 $DEBIAN_VERSION rootdir https://mirrors.tuna.tsinghua.edu.cn/debian/
 
 # 绑定系统目录
 mount --bind /dev rootdir/dev
@@ -49,27 +49,13 @@ chroot rootdir apt update
 chroot rootdir apt upgrade -y
 
 # 安装基础软件包
-chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano network-manager systemd-boot initramfs-tools chrony curl wget locales tzdata language-pack-zh-hans fonts-wqy-microhei kmscon
+chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano network-manager systemd-boot initramfs-tools chrony curl wget locales tzdata
 
-# 配置时区为中国标准时间
+# 设置时区和语言
+echo "Asia/Shanghai" > rootdir/etc/timezone
 chroot rootdir ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-echo "Asia/Shanghai" | tee rootdir/etc/timezone
-
-# 配置本地化为简体中文
-echo "zh_CN.UTF-8 UTF-8" | tee -a rootdir/etc/locale.gen
-chroot rootdir locale-gen
-echo "LANG=zh_CN.UTF-8" | tee rootdir/etc/default/locale
-echo "LANGUAGE=zh_CN:zh" | tee -a rootdir/etc/default/locale
-
-# 配置 kmscon 以支持中文控制台显示
-mkdir -p rootdir/etc/kmscon
-echo "font-name=WenQuanYi Micro Hei Mono
-font-size=14
-xkb-layout=us" | tee rootdir/etc/kmscon/kmscon.conf
-
-# 启用 kmscon 服务接管控制台
-chroot rootdir systemctl disable getty@tty1.service
-chroot rootdir ln -sf /usr/lib/systemd/system/kmsconvt@.service /etc/systemd/system/autovt@.service
+chroot rootdir locale-gen zh_CN.UTF-8
+chroot rootdir update-locale LANG=zh_CN.UTF-8
 
 # 安装设备特定软件包
 chroot rootdir apt install -y rmtfs protection-domain-mapper tqftpserv
@@ -106,6 +92,7 @@ leijun() {
     else
         echo 1 | sudo tee /sys/class/graphics/fb0/blank > /dev/null
     fi
+    echo "屏幕已关闭"
 }
 
 jinfan() {
@@ -114,6 +101,7 @@ jinfan() {
     else
         echo 0 | sudo tee /sys/class/graphics/fb0/blank > /dev/null
     fi
+    echo "屏幕已开启"
 }
 EOF
 
