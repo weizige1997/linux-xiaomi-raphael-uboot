@@ -49,9 +49,6 @@ jobs:
           curl -L -o xiaomi-raphael-debs_${{ inputs.kernel_version }}/firmware-xiaomi-raphael.deb \
             "https://github.com/${{ github.repository }}/releases/download/kernel-v${{ inputs.kernel_version }}/firmware-xiaomi-raphael.deb" || echo "下载 firmware-xiaomi-raphael.deb 失败，可能 Release 不存在"
           
-          curl -L -o xiaomi-raphael-debs_${{ inputs.kernel_version }}/alsa-xiaomi-raphael.deb \
-            "https://github.com/${{ github.repository }}/releases/download/kernel-v${{ inputs.kernel_version }}/alsa-xiaomi-raphael.deb" || echo "下载 alsa-xiaomi-raphael.deb 失败，可能 Release 不存在"
-          
           # 检查是否下载成功
           echo "下载的内核包列表:"
           ls -la xiaomi-raphael-debs_${{ inputs.kernel_version }}/ || echo "目录为空"

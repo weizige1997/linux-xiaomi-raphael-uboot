@@ -49,7 +49,7 @@ chroot rootdir apt update
 chroot rootdir apt upgrade -y
 
 # 安装基础软件包
-chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano network-manager alsa-ucm-conf systemd-boot initramfs-tools chrony curl wget locales tzdata language-pack-zh-hans fonts-wqy-microhei kmscon
+chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano network-manager systemd-boot initramfs-tools chrony curl wget locales tzdata language-pack-zh-hans fonts-wqy-microhei kmscon
 
 # 配置时区为中国标准时间
 chroot rootdir ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
@@ -71,8 +71,6 @@ xkb-layout=us" | tee rootdir/etc/kmscon/kmscon.conf
 chroot rootdir systemctl disable getty@tty1.service
 chroot rootdir ln -s /usr/lib/systemd/system/kmsconvt@.service /etc/systemd/system/autovt@.service
 
-
-
 # 安装设备特定软件包
 chroot rootdir apt install -y rmtfs protection-domain-mapper tqftpserv
 
@@ -83,7 +81,6 @@ sed -i '/ConditionKernelVersion/d' rootdir/lib/systemd/system/pd-mapper.service
 cp xiaomi-raphael-debs_$1/*-xiaomi-raphael.deb rootdir/tmp/
 chroot rootdir dpkg -i /tmp/linux-xiaomi-raphael.deb
 chroot rootdir dpkg -i /tmp/firmware-xiaomi-raphael.deb
-chroot rootdir dpkg -i /tmp/alsa-xiaomi-raphael.deb
 rm rootdir/tmp/*-xiaomi-raphael.deb
 chroot rootdir update-initramfs -c -k all
 
