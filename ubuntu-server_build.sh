@@ -130,9 +130,6 @@ cp rootdir/boot/config-* boot_tmp/
 cp rootdir/boot/initrd.img-* boot_tmp/initramfs
 cp rootdir/boot/vmlinuz-* boot_tmp/linux.efi
 
-# 修改日志级别
-sed -i 's/loglevel=3/loglevel=1/g' boot_tmp/loader/entries/ubuntu.conf
-
 umount boot_tmp
 rm -d boot_tmp
 
