@@ -12,7 +12,7 @@ fi
 UBUNTU_VERSION="noble"
 
 # 创建根文件系统镜像
-truncate -s 3G rootfs.img
+truncate -s 2G rootfs.img
 mkfs.ext4 rootfs.img
 mkdir rootdir
 mount -o loop rootfs.img rootdir
@@ -49,18 +49,18 @@ chroot rootdir apt update
 chroot rootdir apt upgrade -y
 
 # 安装基础软件包
-chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano network-manager alsa-ucm-conf systemd-boot initramfs-tools chrony curl wget
+chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano network-manager alsa-ucm-conf systemd-boot initramfs-tools chrony curl wget locales tzdata language-pack-zh-hans fonts-wqy-microhei fbterm
 
-# 安装语言包和设置默认语言为简体中文
-chroot rootdir apt install -y locales locales-all tzdata
+# 配置时区为中国标准时间
+chroot rootdir ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+echo "Asia/Shanghai" | tee rootdir/etc/timezone
+
+# 配置本地化为简体中文
+echo "zh_CN.UTF-8 UTF-8" | tee -a rootdir/etc/locale.gen
+chroot rootdir locale-gen
 echo "LANG=zh_CN.UTF-8" | tee rootdir/etc/default/locale
 echo "LANGUAGE=zh_CN:zh" | tee -a rootdir/etc/default/locale
-echo "LC_ALL=zh_CN.UTF-8" | tee -a rootdir/etc/default/locale
 
-# 设置时区为亚洲/上海
-echo "Asia/Shanghai" | tee rootdir/etc/timezone
-chroot rootdir ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-chroot rootdir dpkg-reconfigure --frontend noninteractive tzdata
 
 # 安装设备特定软件包
 chroot rootdir apt install -y rmtfs protection-domain-mapper tqftpserv
@@ -82,13 +82,8 @@ PARTLABEL=cache /boot vfat umask=0077 0 1" | tee rootdir/etc/fstab
 
 # 创建默认用户
 echo "root:1234" | chroot rootdir chpasswd
-chroot rootdir useradd -m -G sudo -s /bin/bash user
+chroot rootdir useradd -m -G sudo,video,render -s /bin/bash user
 echo "user:1234" | chroot rootdir chpasswd
-
-# 设置用户中文环境
-echo "export LANG=zh_CN.UTF-8" | tee -a rootdir/home/user/.bashrc
-echo "export LANGUAGE=zh_CN:zh" | tee -a rootdir/home/user/.bashrc
-echo "export LC_ALL=zh_CN.UTF-8" | tee -a rootdir/home/user/.bashrc
 
 # 允许SSH root登录
 echo "PermitRootLogin yes" | tee -a rootdir/etc/ssh/sshd_config
@@ -110,7 +105,6 @@ leijun() {
     else
         echo 1 | sudo tee /sys/class/graphics/fb0/blank > /dev/null
     fi
-    echo "屏幕已关闭"
 }
 
 jinfan() {
@@ -119,7 +113,6 @@ jinfan() {
     else
         echo 0 | sudo tee /sys/class/graphics/fb0/blank > /dev/null
     fi
-    echo "屏幕已开启"
 }
 EOF
 
