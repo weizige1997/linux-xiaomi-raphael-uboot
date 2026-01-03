@@ -12,7 +12,7 @@ fi
 DEBIAN_VERSION="trixie"
 
 # 创建根文件系统镜像
-truncate -s 2G rootfs.img
+truncate -s 3G rootfs.img
 mkfs.ext4 rootfs.img
 mkdir rootdir
 mount -o loop rootfs.img rootdir
@@ -96,7 +96,6 @@ echo "PasswordAuthentication yes" | tee -a rootdir/etc/ssh/sshd_config
 
 # 添加屏幕管理命令到全局bash配置
 cat >> rootdir/etc/bash.bashrc << 'EOF'
-
 # 屏幕管理命令
 leijun() {
     if [ $(id -u) -eq 0 ]; then

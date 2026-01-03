@@ -94,9 +94,15 @@ echo "export LC_ALL=zh_CN.UTF-8" | tee -a rootdir/home/user/.bashrc
 echo "PermitRootLogin yes" | tee -a rootdir/etc/ssh/sshd_config
 echo "PasswordAuthentication yes" | tee -a rootdir/etc/ssh/sshd_config
 
+# 配置 Netplan 使用 NetworkManager
+cat > rootdir/etc/netplan/01-network-manager-all.yaml << 'EOF'
+network:
+  version: 2
+  renderer: NetworkManager
+EOF
+
 # 添加屏幕管理命令到全局bash配置
 cat >> rootdir/etc/bash.bashrc << 'EOF'
-
 # 屏幕管理命令
 leijun() {
     if [ $(id -u) -eq 0 ]; then
