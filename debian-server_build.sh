@@ -54,8 +54,12 @@ chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server 
 # 设置时区和语言
 echo "Asia/Shanghai" > rootdir/etc/timezone
 chroot rootdir ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-chroot rootdir locale-gen en_US.UTF-8 zh_CN.UTF-8
-chroot rootdir update-locale LANG=en_US.UTF-8
+cat > rootdir/etc/locale.gen << 'EOF'
+en_US.UTF-8 UTF-8
+zh_CN.UTF-8 UTF-8
+EOF
+chroot rootdir locale-gen
+chroot rootdir env -u LC_ALL update-locale LANG=en_US.UTF-8 LANGUAGE=en_US:en
 
 # 配置动态语言切换（SSH使用中文，TTY使用英文）
 cat > rootdir/etc/profile.d/99-locale-fix.sh << 'EOF'
