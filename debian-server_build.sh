@@ -49,7 +49,23 @@ chroot rootdir apt update
 chroot rootdir apt upgrade -y
 
 # 安装基础软件包
-chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano network-manager systemd-boot initramfs-tools chrony curl wget
+chroot rootdir apt install -y bash-completion sudo apt-utils ssh openssh-server nano network-manager systemd-boot initramfs-tools chrony curl wget locales tzdata fonts-wqy-microhei
+
+# 设置时区和语言
+echo "Asia/Shanghai" > rootdir/etc/timezone
+chroot rootdir ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+chroot rootdir locale-gen en_US.UTF-8 zh_CN.UTF-8
+chroot rootdir update-locale LANG=en_US.UTF-8
+
+# 配置动态语言切换（SSH使用中文，TTY使用英文）
+cat > rootdir/etc/profile.d/99-locale-fix.sh << 'EOF'
+# 如果是SSH连接，则使用中文
+if [ -n "$SSH_CONNECTION" ] || [ -n "$SSH_TTY" ]; then
+    export LANG=zh_CN.UTF-8
+    export LC_ALL=zh_CN.UTF-8
+fi
+EOF
+chmod +x rootdir/etc/profile.d/99-locale-fix.sh
 
 # 安装设备特定软件包
 chroot rootdir apt install -y rmtfs protection-domain-mapper tqftpserv
